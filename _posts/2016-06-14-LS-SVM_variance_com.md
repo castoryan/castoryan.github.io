@@ -5,7 +5,7 @@ date: 2016-06-14
 ---
 
 
-**分类**
+# **分类**
 $$
 \begin{equation}
 	\min_{w,b,e} J_{P}(w,e)=\frac{1}{2}w^{T}w+\gamma \frac{1}{2}\sum_{k=1}^{N}e_{k}^{2}       \\\
@@ -13,7 +13,7 @@ $$
 \end{equation}
 $$
 
-**回归**
+# **回归**
 $$
 \begin{equation}
 	\min_{w,b,e} J_{P}(w,e)=\frac{1}{2}w^{T}w+\gamma \frac{1}{2}\sum_{k=1}^{N}e_{k}^{2}       \\\
@@ -22,7 +22,7 @@ $$
 $$
 
 
-**FDA**
+# **FDA**
 思考FDA的本质, 是为了最大化类间距离, 最小化类内距离, 投影到一维平面.
 最小化类内距离可以由min这个方程实现.
 $$
@@ -33,7 +33,7 @@ $$
 \end{equation}
 $$
 
-**线性PCA**
+# **线性PCA**
 注意在PCA中,我们的目标是最大化方差, 于是优化问题变成了max, 但我们又希望继续保持$w^{T}w$最小化(为啥咧?), 于是给它加负号.
 $$
 \begin{equation}
@@ -43,7 +43,7 @@ $$
 $$
 
 
-**Kernel PCA**
+# **Kernel PCA**
 $$
 \begin{equation}
 	\max_{w,e} J_{P}(w,e)= \gamma \frac{1}{2}\sum_{k=1}^{N}e_{k}^{2}-\frac{1}{2}w^{T}w\\\
@@ -53,7 +53,7 @@ $$
 这里面的$\mu_{\varphi}= \frac{1}{N} \sum_{k=1}^{N}\varphi(x_{k})$, 最后转化到对偶空间求解.
 
 
-**Spectral Clustering**
+# **Spectral Clustering**
 谱聚类实际上就是kernel PCA加权重!!
 $$
 \begin{equation}
@@ -62,11 +62,11 @@ $$
 \end{equation}
 $$
 
-**Kernel CCA**
+# **Kernel CCA**
 Canonical correlation analysis(CCA)是为了找到两个多维变量分布之间的最大Correlation.
 
 
-**总结**
+# **总结**
 1. 把supervised, semi-supervised, unsupervised learning 结合在一起.
 2. kernel method
 3. 最小二乘支持向量机是*核心问题*, 是广义上的优化建模.
@@ -77,7 +77,7 @@ Canonical correlation analysis(CCA)是为了找到两个多维变量分布之间
 
 
 
-**特别注意**
+# **特别注意**
 对训练数据较少, 测试数据较多的情况, 适合在对偶空间求解. 
 在10000个test data, 50 training data情况下, 原始空间$w$矩阵为10000维, 对偶空间$\alpha$仅50维.
 
