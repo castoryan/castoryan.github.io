@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Hank Quinlan, Horrible Cop
+title: Qinrui Yan's Blog
 ---
 <div class="blurb">
 	<h1>Hi there, I'm Qinrui Yan</h1>
@@ -9,3 +9,10 @@ title: Hank Quinlan, Horrible Cop
 	<a href="/about">Read more about my life...</a>
 	</p>
 </div><!-- /.blurb -->
+<h1>{{ page.title }}</h1>
+	<ul class="posts">
+
+	  {% for post in site.posts %}
+	    <li><span>{{ post.date | date_to_string }}</span> » <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a></li>
+	  {% endfor %}
+	</ul>
