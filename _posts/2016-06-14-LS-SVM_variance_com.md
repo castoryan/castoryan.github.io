@@ -1,7 +1,7 @@
 ---
+layout: post
 title: LS-SVM的各种变形对比
-notebook: yqrpsl's notebook
-tags:machine learning notes
+date: 2016-06-14
 ---
 
 

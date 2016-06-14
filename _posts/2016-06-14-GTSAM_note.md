@@ -1,7 +1,7 @@
 ---
+layout: post
 title: GTSAM笔记
-notebook: yqrpsl's notebook
-tags:SLAM
+date: 2016-06-14
 ---
 
 

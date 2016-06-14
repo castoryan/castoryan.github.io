@@ -1,7 +1,7 @@
 ---
+layout: post
 title: LS-SVM笔记
-notebook: yqrpsl's notebook
-tags:machine learning notes
+date: 2016-06-14
 ---
 
 LS-SVM笔记

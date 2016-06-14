@@ -1,7 +1,7 @@
 ---
+layout: post
 title: Frank Dellaert Thesis总结
-notebook: yqrpsl's notebook
-tags:SLAM, CV
+date: 2016-06-14
 ---
 
 Using extracted features to solve geometric estimation problems induces a data-association problem, also known as the correspondence problem.
