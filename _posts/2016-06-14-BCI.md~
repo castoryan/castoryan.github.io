@@ -1,0 +1,246 @@
+---
+layout: post
+title: BCI小结
+date: 2016-06-14
+---
+
+# Introduction
+Dependent BCI
+	- 不用normal pathways to carry the message, 但需要带有信号的pathways去generate brain activity(比如EEG)
+Independent BCI
+	- 不依赖normal output pathways
+	- Message is not carried in the brain's normal pathways
+	
+Synchronous BCI(Cue guided)
+	- 从一个mental task切换到下一个时, 必须遵守a fixed repetitive scheme
+	- All commands are connected to the stimulus
+	- BCI depends on proper timing of stimulus onset in EEG recordings
+
+* Asynchronous BCI(self-paced)
+	- 原理: subject 当mental task stop或者下一个mental task的开始时做出自愿的self-paced decisions.
+	- 不依赖于外部信号.
+	- BCI decodes and evaluates the brain signals generated and decided by the subject.
+
+* Approaches to BCI control
+	- 刚开始: 用neurofeedback and operant learning principle(subject learning)
+	- 后来: Machine Learning, 允许推断specific brain的statistical signature
+	- 现在: subject and machine training同步.
+
+* BCI指标
+	- Accuracy
+	- speed
+	- Information transfer rate
+
+# Signal Processing
+
+## STFT(Short time Fourier transform)
+一小段时间内信号的傅里叶变换
+
+* 采集到的信号通常是连续的, 需要合适的采样频率去最小化loss of information
+* Spectral filter: FIR and IIR
+* 理论上需要很高阶的滤波器, 但实际上做不到. 
+
+## Machine Learning
+subject to subject variability
+session to session variability
+trail to trail variability
+
+* feature selection
+	- 原因:
+		+ curse of dimensionality
+		+ improve performance of classifier
+		+ save computation
+		+ better understanding of the undrelying processing that generated the data.
+	- 方法:
+		+ filter: rank features based on their usability for classification, 与分类器类型没有关系.
+			* student t-test(filter)
+			* $\r^{2}$ matrix of difference(filter)
+		+ wrapper: access subset of features, 根据他们的对于指定分类器的usefulness.
+			* K-fold cross-validation
+			* 步骤
+				- 1. start from some subset of features
+
+
+
+# Invasive Recording
+
+Classical approach: Wire electrodes
+MEMS: Utah array, Michigan probes
+
+* 常用Signal processing 方法: 
+	- Spike detection
+		+ Window discriminator
+			* 缺点: 
+				- need human supervision
+				- time consuming using multiple electrodes
+				- statistical properties is not well understood.
+		+ power method
+		+ principal components
+			* 优点: use of f-test statistic, 可以用阈值去控制false positive
+			* 缺点: 需要监督, 需要user提取spike去建立pc.
+		+ matched filtering: 需要监督
+		+ NEO(Non-linear energy operator)
+		+ wavelets
+			* unsupervised
+	- Spike sorting
+		+ Feature extracted from each spike:
+			* PCA components
+			* Wavelet coefficients
+		+ Spike串中的Spikes可能来自很多个neuron, 需要sorting来确定: 1.有多少neurons被捕捉到. 2.把spikes分配到不同的neuron上
+		+  mixture of t-distribution
+			* 缺点是当neuron fires很快, spike的幅度会衰减.
+			* 一个neuron可能会产生几个cluster
+
+* Recording 方法
+	- multi-electrode arrays
+		+ Utah array
+		+ Michigan Probes
+		+ NeuroProbes
+	- Electrode selection
+		+ 因为每个shaft上有上百个electrodes, 不是每一个electrode都可以同步读出来的, 所以为了保证同步, contact pad的数量是有限的.
+		+ 根据一些标准来选择电极~~~
+		+ SNR-based(unsupervised) 
+			* 步骤:
+				- spike detection
+				- 计算SNR, (平均N个spikes的root mean square value)
+			* 因为电极之间靠的太近, 同一个neuron可能会被选择多次
+		+ Penalized SNR(unsupervised)
+			* 之前的有问题, 所以要考虑之前选择过的电极, 对已经选择过的进行惩罚, 避免重复选择.
+		+ Expert scores(supervised)
+			* 人为确定signal quality score
+			
+# Invasive BCI base on action potential and local field potential(LFP)
+* Action potential(0.3-250HZ)
+	- 特征:
+		+ the number of spikes in 20 bins with length 25ms from all 96 electrodes(1920 features in total)
+* Local field potential(>500HZ)
+	- 对于慢速颅内记录(chronic intracranial recording), action potential常常丢失. 原因包括: cell expiration, inflammation, reactive gliosis and scarring
+	- LFP对于信号degradation更加robust, 更容易记录更长的周期
+	- LFP可以比action potential表现更好.
+	- Decoding:
+		+ LFP有相似的neural plasticity. 经过几天训练, 可以区分target和stimuli
+		+ LFP包含了移动的动机(intention), 可以被解码出来.
+	- LFP的特征:
+		+ Wavelet coefficients
+		+ Phase synchrony相位同步性
+		+ Wave propagation
+
+
+# Noninvasive methods for studying brain activity
+
+
+## Noninvasive BCI的四种
+1. VEP
+	- dependent BCI, 因为它依赖末梢神经或肌肉控制.
+	- SSVEP(steady state VEP, 稳态视觉诱发电位): 当visual stimulus频率高于6HZ时, 上一次的stimulus还没散去, 下一次的stimulus就会出现, 这种周期性的响应称为SSVEP.
+	- SSVEP因为信噪比很高, 适合用来做short-term identification of evoked responses.
+2. SCP
+	- 持续500ms至几秒之间
+	- 负的SCP对应的是与cortical activation相关的movement或者其它功能
+	- 正的SCP对应的是reduced cortical activation.
+3. P300
+	- 正电位, 在不经常性的stimulus, 或强烈分散的stimulus发生300ms之后产生.
+	- 可以是visual, auditory or somatosensory产生.
+	- P300会随时间而衰减(所以要不经常那种刺激.)
+	- 依赖external stimulation, 这是evoked potential的通病!!!
+4. mu and beta rhythm
+	- ERD和ERS
+	- 人醒着的时候主要的sensory和motor cortical areas会有8-12HZ的EEG信号, mu波. 同时会有18-26HZ的beta波.
+	- movements or preparation of movements 会导致Mu波beta波下降. 这是ERD.
+	- 与ERD相反的上升是ERS, 是在movements结束后, 放松时产生的.
+
+
+
+## EEG 
+a measure of the brain's voltage fluctuations as detected from scalp electrodes. 是neurons的累积电位活动的近似.
+需要通过胶体附着在scalp上.
+
+EEG是两个或多个electrodes的电位差.
+所以有几种方法:
+Single reference montage.(耳垂, 乳头)
+Bipolar design
+Common average reference(CAR)
+
+* 电极分布
+	- 标准10-20系统
+	- spaced apart 10-20%
+
+* EEG的频率分布
+	- Delta <4HZ. During sleep, coma
+	- Theta 4-7HZ. 与emotional stress相关, 挫折, 失望...
+	- Alpha 8-12HZ. reduce amplitude with sensory stimulation or mental imagery
+	- Beta 12-36HZ. 在intense mental activity时会上升
+	- Mu 9-11HZ. 随着移动而减少, 
+	- Lambda(sharp, jagged)
+	- Vertex(sharp wave)
+* 放松的时候Alpha波高, 兴奋的时候Beta波高. 
+* Mu波, 身体运动或者意图去运动的时候高. 频率跟alpha波重叠, 但Mu波是从其它brain activity中区别出来的.
+
+
+* EEG的神经基础
+	- EEG是电位活动在肌肉中传输, 从electrical generator到recording electrode. 有很大的噪声.
+	- Action potential太快, 不产生dipole
+	- Post-synaptic potentials可以满足记录EEG的需求.
+		+ 当Action Potential到达axon terminal时, neurotransmitter 释放.
+		+ neurotransmitter绑在receptor上
+		+ postsynaptic neuron gets depolarized(EPSP) or hyperpolarized(IPSP).
+		+ EPSP and IPSP 时间空间求和.
+		+ 如果postsynaptic neuron到达了depolarization阈值, action potential会在后一个细胞上产生出来.
+	- 当EPSP在dendrites中生成时, 细胞外电极会检测到一个负电位, 因为NA离子会回流到细胞内...
+	- 
+	- pyramidal neurons空间对齐, 并垂直于皮质表面. EEG主要是pyramidal neurons的postsynaptic potentials. 从更深处的generators传来的electrical activity被volume conduction effects分散及加强.
+
+### Artifacts
+EEG中有一些噪声, 是由其它因素造成的, 而非我们想要的那部分.
+
+
+
+
+
+## MEG(Magnetoencephalography)
+ 一个电偶极子周围有相应的磁场. 场的极性取决于电流方向. 磁场的累加与voltage累加方式相同.
+磁场方向与电流方向垂直.
+当电流方向与scalp方向平行时, 磁场冲dipole的一边离开头部, 再从另一边进入, 这样就可以测量了.
+当电流与scalp方向垂直, 磁场没法离开scalp, 无法测量.
+MEG对pyramidal cells更加sensitive
+EEG可以从sulcus(脑回)或者gyrus(脑沟)获得.
+MEG包含的brain activity更少, 因为他没有radially aligned axons的信息.
+MEG不用与头皮直接接触, 可以非接触获得.
+
+* fMRI
+MRI注重于脑的解剖结构, fMRI关注于脑的作用.
+通过neural activity导致血液含氧量上升, fMRI信号也会随之上升.
+
+
+* Near-infrared spectroscopy
+	- 近红外光可以穿透皮肤, 骨头.
+	- 对含氧血红蛋白和去氧血红蛋白和线粒体的色素, 有特征吸收带. 含氧血红蛋白的大小可以表征脑活动的大小.
+	- 测量含氧血红蛋白, 还原血红蛋白, 总血红蛋白 和 细胞色素氧化酶的浓度差别. 
+	- 如果用tracer(oxygen or indocyanine green), 就可以测量大脑的血流量和大脑的总血量.
+	- 好处:可以测量大脑含氧量
+	- 缺点:难用, 不能连续记录, 对人为因素很敏感, 很难测大脑血流量.
+
+### 小结
+1. Spikes太快, EEG主要用post-synaptic potential
+2. EEG的原理就是cortial上的Pyramidal neurons受到spikes, 产生postsynaptic potential
+3. MEG
+4. f-MRI
+5. NIRS
+
+
+
+
+## 13 Hybrid BCI
+1. 几种: ERD是motor imagery, SSVEP是visual attention, Heart rate是emotion, Optical是mental arithmetic
+	- ERD->SSVEP
+	- ERD+Heart rate
+	- ERD+SSVEP
+	- Heart rate->SSVEP
+	- Optical->SSVEP
+	- SSVEP->ERD
+	- Eye gaze->ERD
+2. ERD+SSVEP: 证明可以同时工作, 且使系统更加通用
+3. ERD+SSVEP: 证明可以同时国祚, 但并不比单用SSVEP更好
+4. 2D cursor control
+5. P300+SSVEP: 传统的P300容易在同row或同col中发生错误, 用SSVEP来加强它们的区别
+6. Simultaneous P300/SSVEP: hybrid的accuracy更低, 但是ITR更高

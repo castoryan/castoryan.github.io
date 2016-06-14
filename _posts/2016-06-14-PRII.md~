@@ -1,0 +1,426 @@
+---
+layout: post
+title: PRII笔记
+date: 2016-06-14
+---
+##PR部分
+* Introduction
+	- 贝叶斯理论:
+	- 协方差, 相关性
+	- Maximum Likelihood
+	- Maximum a posterior
+		+ 很难获得有价值的先验, ML的先验就是均匀分布
+		+ 在连续的情况下, 后验$p(\theta|z)$是一个密度函数, 而非概率分布, 所以MAP会因为参数不同而结果不同(非线性映射).~~~啥玩意?? (解决的办法是loss functions correctly transform under change of coordinate重新参数化)!!!!比如perspective projection就是一种non-linear map
+	- 置信区间
+	- 决策理论
+		+ 最小化误分类
+		+ 最小化误差
+
+* GMM-EM
+	- Mixture of gaussian
+		+ GMM是universal approximator
+		+ 有K个component, 就会有K个N维的mean, K个N*N的covariance.
+		+ 为了简化, 只保留covariance的对角元, 即每个分量之间独立...
+			* Sampling from GMM
+			* Fitting the GMM
+				- 这个GMM是多个正态分布的加权平均.
+				- 可是我们并不知道每一个data是由哪一个分布造成的!
+				- 算法步骤: 以GMM为例, 参数为混合系数$p_{k}$, 平均数$u_{k}$和协方差$\sigma_{k}$. 根据data $x$, 判断生成$x$的component $z_{i,k}$.
+					+ E步, 计算每一个分模型的贡献系数. 即在当前参数下, 第$i$个分模型占总模型的权重.
+					+ M步, 利用前一步计算出来的系数, 计算maximum likelihood. 计算三个参数.
+					+ 反复迭代直到收敛.
+
+				- 当样本与分模型数量相比不够多时, 会有奇异值问题. 即每个数据点是一个中心, variance为0.
+	- 案例: 
+		+ background subtraction
+
+
+
+* 聚类:
+	- distance metrics: 有几个要求要满足!
+		+ euclidean distance (L2 norm)
+		+ Mahalanobis distance: $d(x,y)=\sqrt{(x-y)^{T}S^{-1}(x-y)}$. 考虑measurement之间的协方差, 即$S$
+		+ KL divergence: 两个分布之间的距离:$D_{KL}(P||Q)$
+			* 不对称
+			* 不满足triangle inequality
+			* ture pdf和model pdf之间的距离
+			* 测量Q和它的近似Q之间的信息损失
+	- Curse of dimensionality
+		+ 高维数据, 采样时的组合数爆炸, 容易导致模型过拟合.
+		+ 用降维的方式解决
+		+ 可是有很多信息在尾部, 高斯密度是高维的
+		+ **方形里面放一个圆形的例子**, hypercude的体积$(2r)^{d}$, hypersphere的体积$\frac{2r^{d}\pi^{d/2}}{d\Gamma(d/2)}$. 那么当d无限大的时候, hypersphere的比例就趋向于0了, 则说明包含的信息越来越少!!!
+
+	- clustering
+		+ K-means 步骤
+			* randomly choose K centers
+			* 把点分配给最近的中心
+			* 获得一个新的center, 迭代
+			* 收敛为止
+		+ GMM 和 K-means的区别
+			* GMM是soft assignment, 用概率计算的, 更加general
+			* K-means是hard assigment, simple, 但粗暴.
+		+ Hierarchical clustering
+			* Top-down
+			* Bottom up
+			* Agglomerative clustering
+			* 距离测量方式分为:min(组间距离太远时), max(组内距离太近的时候比较好), mean(对outlier robust, 但计算麻烦)
+	- 案例:
+		+ vector quantization
+		+ face clustering
+
+* 特征选择
+	- 特征选择的目的:
+		+ avoid curse of dimensionality
+		+ avoid overfitting
+		+ save time for data collection
+		+ save memory
+		+ save computation time
+		+ remove irrelevant dimensions
+	- 单变量选择: 每次选择只考虑一个变量
+		+ correlation: measures only linear dependency between x and y
+		+ mutual information: 表明变量X和Y共享了多少信息.
+		+ Correlation and MI 可以用来选择相关的feature.
+		+ **注意:** 相关不等价于有用!!
+	- 多变量选择: 每次选择同时考虑多个变量
+		+ 非常耗时, 因为N个feture会有$2^{N}$个子集. 需要用启发式搜索
+		+ Forward selection
+			* Wrappers: machine learning
+			* filters: 用评价函数
+			* Relevant不等价于casual
+	- boosting
+
+* 分类:
+	- discriminative vs generative
+		+ discriminative是只管怎么分类
+			* 目前为止, 我们算discriminant surface是通过以下几步:
+				- 对training data里面的每个class的feature vector进行测量
+				- learning likelihood for each classes
+				- 用高斯函数来表示likelihood
+				- 计算posterior
+				- 通过likelihood计算discriminant surface
+			* 优势在于: 简单, 不用对所有东西建模, 可以避免对background knowledge的依赖. 
+		+ generative是要描述data的生成过程, 整个联合分布, 然后再用ML或MAP算分类.**允许估计uncertainty**
+	- Binary classification
+		+ Least square做分类的问题:
+			* 很容易被一些不重要却数值很大的点影响.
+		+ LDA
+			* 把数据映射到一维, 使两个类之间距离最大, 类内方差最小.
+		+ SVM
+	- multiclass classification
+		+ 多类分类的思想
+			* one-vs-all: K类, K个binary分类器, 每个都把自己当正类, 其它当反类.
+			* one-vs-one: K类, K(K-1)/2个分类器, 用voting给两类中的一个投票, 而最终的分类就是累积投票和最多的那个. 这样更费时间, 但有时候效果更好.
+		+ K-NN
+			* 天生适合多类, 不用训练, 而是存储一堆sample, 到分类的时候再去算, 牺牲test time, 获得training time.
+				- 解决方式:1, 用kd-tree, 搜索的时候更高效. 2, 存储聚类中心, 而非所有sample
+		+ Decision tree
+			* 速度快, 天生多类.
+			* 由decision tree组成: 需要1.每个节点能让一个类别尽量pure. 2, 到达left时的总深度最小. *要有stop criterion*
+			* 需要选择适当数量的feature, 及合适的stop criteria
+
+
+* 物体识别-specify
+	- Feature matching
+		+ 找到匹配点
+		+ Alignment: 找到两组点之间的affine transformation. 如果物体被限定在一个平面上, 则至少需要四组对应点
+		+ Voting: 用feature分别给每个模型投票. 循环地试feature, 把votes转换为模型参数. 找到获得vote最多的模型.
+			* 例子: Hough transform: 记下每个edge point所在的line所获得的vote. 然后找出得到很多vote的line.
+			* SIFT feature: 分别对每一个物体的sift feature进行投票.
+	- Visual words
+		+ 在大型数据集中图像检索
+		+ indexing??
+		+ K-means聚类, 给每一个sift feature聚类
+		+ 然后把每一个sift feature的分类号组合起来成一条向量. 即是bag-of-word的word
+		+ inverted file index: 把dataset里的image都取出来, 看每一个都有哪些word. 然后按照word来排列, 看看每个word都有哪些image.
+		+ 通过vocabulary tree来进行物体识别
+	
+* 物体识别-category
+	- rigid model
+		+ adapt template matching to deal with within-class variability
+			* robust representation
+			* machine learning to learn allowed variations
+		+ haar+adaboost 和 hog+SVM都是rigid model with handcrafted features
+		+ deformable parts model
+	- Bag of words
+		+ Spatial pyrmaid match
+		+ Extension: 
+			* soft assignment, sparse coding
+			* GMM and Fischer Vectors
+
+
+
+* Local Feature
+	- Detection, Description, Matching
+	- 重要特性: Repeatability, Distinctiveness, Compactness, Locality
+	- Detection: 定义corner点为感兴趣的点
+		+ Rotation invariant:
+			* Harris: 有旋转不变, 没有尺度不变!
+		+ Scale invariant
+			* LoG: 草帽型, 多尺度! 是二阶导
+			* 用不同的sigma, 高斯卷积核可以获得不同的尺度, 但这样在同一个location会有重复计算.
+			* Scale-space pyramid
+				- 改图像size或者改kernel size. 通常我们两者都会用.
+			* Automatic scale selection
+				- 用一个函数来评价相对应的patch, 像Laplacian
+			* Normalized derivative
+				- 要选择scale, 那么不同scale下计算出来的导数应该大小相近. 可是由于大尺度下的图像smooth得更严重, 求出来的导数往往比较小.
+				- 通过乘以核函数$\sigma^{m}$来补偿由于scale下降带来的梯度衰减
+		+ DoG: 可以用来近似LoG
+
+	- Description:
+		+ 分两步: 1. 把scale, size, shape都统一, 归一化. 2. 产生描述子.
+		+ 注意如果是scale invariant的feature, 我们就根据尺度因子再对原图像重新采样. 如果是affine invariant feature, 则加上affine transformation进行采样.
+		+ 对于rotation invariant, 通过计算dominant gradient orientation, 对patch进行旋转. 使patch转到跟水平轴平行的方向上.
+		+ 对于photometric transformation
+			* 用线性变换来normalize, 即把均值移到128, 方差移到50.
+			* 用invariant descriptor, 比如描述difference between two intensity之类的.
+		+ 用SIFT descriptor就挺好:
+			* SIFT本身没有scale invariant, 要依赖geometric normalization.
+			* 用orientation histogram. 避免noise和misalignment的影响, 也避免的光度变化的影响.
+			* 不是对整个region做旋转直方图, 而是把区域截成4\*4或者2\*2来做.根据旋转与中心的距离进行加权.
+			* 16个cells, 每个有8个旋转分量, 128维. 然后归一化...
+			* **robustness的原因**
+				- 使用直方图
+				- bilinear weighting
+				- 对梯度大的像素加大权重, 因为更可信.
+				- 高斯kernel平滑.
+			
+
+##Image processing
+
+###Recording Images
+* thin lens equation, depth of field *3 assumptions*
+* *Aberrations: geometrical and chromatic *用组合lens解决*
+* geometrical aberration 主要是radial distortion, barrel和pincushion. 离图像中心越远, 畸变越大.
+* chromatic aberration 是由于光波长不同, 过透镜的以后会成像在不同平面上. 去除这种畸变要用两组以上的波长.
+
+* 两种Camera: CCD, CMOS
+	- perspective projection: 忽略了畸变!! 从3D映射到图像在映射到Pixel coordinates.
+		+ 3D to 2D, 先从3D坐标系通过外参转成图像坐标系u, v. 然后再通过内参转化为像素坐标系.
+			* 像素坐标系: $x=k_{x}u+sv+x_{0}, y=k_{y}v+y_{0}$.
+				- 注意其中的s是用来描述像素长宽不一致的情况, 正常的正方形坐标应该是0.
+				- $x_{0}, y_{0}$都是相机坐标系到像素坐标系的平移.
+	- 后半部分讲的光照, 带星号先不管.
+	
+### Segmentation:
+* Thresholding
+    -  Otsu criterion: $p_{1}\sigma_{1}^{2}+p_{1}\sigma_{1}^{2}$, 意思是要最小化两个组内的方差.
+	-  dilation: mask里的最大值, erosion: mask里的最小值, median filter: mask里中间值.
+	-  注意: 中值滤波可以平滑边缘. dilation+erosion和erosion+dilation效果是不同的.
+	 
+	- Edge based
+		- 现在的边缘检测方法大多bottom-up, 并不合理.(比如canny?)
+		-  用hough变换
+			- 只能对已经定义好的shape有效.
+			- 记住推导~~
+	- Region based
+
+### Sampling and Quantisation
+* sampling是把连续信号变成'pixels'
+* quantisation是把已经离散采样的信号再分散化. 通常灰度图8bits, RGB图24bits, 医用图像12bits或16bits.
+* model of sampling: 两步走, 先积分一个window里的图像, 然后aliasing???什么鬼
+	- 第一步用convolution theorem
+		- 时域里图像与mask的卷积, 就是频域里的点对点相乘.
+	- 第二步用sampling theorem: 回忆回忆DSP的内容
+	- 关于图像傅里叶变换:
+		- 正交基函数
+		- 用2D sinc对window做傅里叶变换
+		
+
+### Enhancement and Feature Detection
+* Enhancement:
+	- simplifying interpretation
+	- more pleasing outlook
+	- normalizsation
+	- 补偿曝光不足, 曝光过度
+	- 扩大interesting part亮度范围
+* Edge and corner detection
+	- 找到物体轮廓或角点
+	- 信息较丰富的区域
+	- 简化了很多数据
+	- Enhancement
+		+ 直方图均衡化: 均衡化要重新分布亮度, 即按照原本的分布排列.
+			+ use them more evenly
+  			+ flat histogram
+  			+ 使用累积亮度概率(Cumulative intensity probability), 从直方图左部开始积分. 算出每个点对应的累积概率, 然后看分布曲线, 把它拉成一条直线即可.
+
+* Deblurring 
+  	- Unsharp masking
+  		- *把 blurred image当做是散射的过程*, 即是原函数的高阶泰勒展开, 一阶近似之.
+  		- Difference of Gaussian(DOG): 用来近似拉普拉斯算子, 即二阶导. 资料: http://blog.csdn.net/abcjennifer/article/details/7639488 . 主要的思想是用高斯核对图像卷积相当于低通滤波, 用两个参数不同的高斯卷出来的图像, 相减, 得出图像求极值点, 这些点即是角点.
+  	- Inverse filtering 反向滤波
+  		- noise suppression
+  			- 低通convolution滤波
+  				- 平均化, 就是低通滤波
+  				- 或者那种中间高两边低的卷积核
+  			- 非线性median滤波
+  				- 排序邻域所有像素, 取中值, 赋值
+  			- 对比: 
+  				- 中值滤波完全移除spike, 线性滤波对所有的都响应
+  				- 中值滤波会保持不连续的的地方, 线性滤波会平滑
+  				- 中值滤波sharpen edges, 消除突出.
+  			- anisotropic diffusion: 1. binomial smoothing between edges. 2. unsharp masking at edges.
+  		- Feature detection
+  			* *high intensity gradient: gradient operator* and *inflection points: zero crossing*, 只考虑各向同性的operator.
+  				- gradient operator: $\sqrt{(\frac{\partial{f}}{\partial{x}})^{2}+(\frac{\partial{f}}{\partial{y}})^{2}}$, $\theta = tan^{-1} (\frac{\partial{f}}{\partial{y}} / \frac{\partial{f}}{\partial{x}})$.
+  				- zero crossing: $\triangledown^{2}f= \frac{\partial^{2}f}{\partial x^{2}}+\frac{\partial^{2}f}{\partial y^{2}}=0$
+ 			* Gradient operator: Sobel masks \\
+					$
+					\begin{bmatrix}
+    					-1 & 0 & 1 \\\
+    					-2 & 0 & 2 \\\
+    					-1 & 0 & 1 
+					\end{bmatrix}
+						和
+					\begin{bmatrix}
+   						-1 &-2 & -1 \\\
+    					 0 & 0 & 0 \\\
+    					 1 & 2 & 1 
+					\end{bmatrix}
+					$
+					
+					一个是对竖直方向, 一个是对水平方向. 算两个输出:
+						1. 求平方根算出大小. 2. 求他们比率的arctan, 算方向.
+			* Gradient operator: MTF(Modulation Transfer Function)
+				- 纯虚函数, 造成$0.5\pi$的相移.
+				
+			* Zero-crossing.
+				- linear + shiftzinvariant, 用convolution
+				- isotropic 各向同性
+				- 噪声敏感
+				- 包括了smoothing的操作.
+				- 离散近似laplacian算子 \\
+					$
+					\begin{bmatrix}
+    					-1 & 0 & 1 \\\
+    					-2 & 0 & 2 \\\
+    					-1 & 0 & 1 
+					\end{bmatrix}
+						和
+					\begin{bmatrix}
+   						-1 &-2 & -1 \\\
+    					 0 & 0 & 0 \\\
+    					 1 & 2 & 1 
+					\end{bmatrix}
+					$
+
+				- 好处在于: 
+						* edge的宽度为1
+						* contour封闭
+						* yet not convincing
+
+				- 附加!!!
+					* **Sobel filter 反映了希望找到的parttern**
+					* **matched filter theorem: 最佳的convolution mask就是你要找的pattern 它自己, 比如line detector**
+
+		+ Harris corner detecor
+			* 我们需要区分平面, edge, 角点. 关键在于找到每个方向上的亮度变化方向. 平面的每个方向都很小, 边缘只在一个方向上大, 角点在每个方向都大!!
+			* harris corner detector: 找变化最小及最大的方向, 通过求亮度变化的second order moments, 找特征值和特征向量.
+			* 平面只有一个小特征值, 直线有一大一小两个特征值, 角点会有两个大的特征值.
+		
+
+
+
+### Surface Feature Color texture
+* CIE色度图
+	- $r=\frac{R}{R+G+B}, g=\frac{G}{R+G+B}$
+
+* cooccurrence matrices
+	- 直方图只包含亮度的统计信息, 不包括很多空间信息
+	- coocurrence matrices 是intensity pairs的概率分布, 包括一定的空域信息
+	- coocurrence matrices 的统计feature 包括: energy, entropy, contrast, homogeneity, max probability.
+
+* Filter bank
+	- laws filter: fixed filter set yields simple convolutions
+		+ 一定定义好的一些简单滤波器.
+	- Gabor filter: gaussian envelope multiflied by cosine
+		+ 在空域是三个尖的造型, 在频域是两个尖
+	- Eigen filter
+		+ 针对texture的filter
+		+ 用适合texture的filter操作图片, 然后对新图PCA分解出eigen vector来, 进行滤波.
+
+### PCA ICA
+* PCA
+	- 降维, 获取最大方差的表示
+	- **维度灾难:** 因为维度提升时, 样本相对而言就显得很稀疏. 稀疏使得描述概率分布很困难, 也很难进行聚类.
+	- 可以理解为, 以mean为中心对数据进行旋转, 找到variance最大的方向.
+	- 操作步骤:
+		+ 数据减去mean, 算covariance matrix $C$
+		+ 假如有一个向量$c_{1}$, 使$var[c_{1}^{T}x]$最大.则有 $\sum c_{1}^{T}x(c_{1}^{T}x)^{T}=\sum c_{1}^{T}xx^{T}c_{1}=c_{1}^{T}\sum xx^{T}c_{1}=c_{1}^{T}Cc_{1}$ 最大.
+		+ 但注意, 要归一化$c_{1}$, 使$c_{1}^{T}c_{1}=1$
+		+ 于是构建了lagrange multiplier, $c_{1}^{T}Cc_{1}-\lambda(c_{1}^{T}c_{1}-1)$, 又有了熟悉的求导等于0. 于是可以知道$\lambda$是$C$的特征值, $c_{1}$是对应的特征向量.
+		+ **注意** 同样的方法可以求得后面的特征值和特征向量, PCA求出的特征值和特征向量互相之间都是正交的. 只有当dataset jointly normally distributed的时候, PC之间才能保证相互独立.
+		+ 应用: 降维, 特征选择, 数据压缩
+		+ **问题:** decorrelated不表示数据在统计特性上相互独立. 有一个sin 和 cos的例子. coreelation仅仅evaluate 线性的相关性. 而统计相关性是概率学的表示.
+* ICA 貌似不考, 先不看.
+
+### Optical flow
+* 光流是光照较强部分的明显运动.
+
+* constraint equation: 
+	- $\frac{dI}{dt}=\frac{\partial I}{\partial x}\frac{dx}{dt}+\frac{\partial I}{\partial y}\frac{dy}{dt}+\frac{\partial I}{\partial t}=0$
+	- 上式中 $u=\frac{dx}{dt}, v=\frac{dy}{dt}, I_{x}=\frac{\partial I}{\partial x}, I_{y}=\frac{\partial I}{\partial y}, I_{t}=\frac{\partial I}{\partial t}$. 于是有$I_{x}u+I_{y}v+I_{t}=0$, 但是现在有两个未知数$u, v$, 只有一个方程, 不够啊~~
+* 有aperture problem. 就是只有在平行于梯度方向的component 才能提取到.
+	- 用intensity的高阶导数可以解决underdetermined nature
+	- 对于一些pattern, 比如亮度很平整的区域, 没法解决aperture problem
+* 增加一个平滑项: $e_{s}=\iint ((u_{x}^{2}+u_{y}^{2})+(v_{x}^{2}+v_{y}^{2}))dxdy$, 原本的约束: $e_{c}=\iint (I_{x}u+I_{y}v+I_{t})^{2}dxdy$, 使二者权重和最小化.
+
+### 3D reconstruction
+* Stereo(simple setup)
+	- $x-x^{'}$称为disparity. 
+	- 对远距离的物体不准, 增加b和f有助于提高depth resoluiton
+* Stereo(general setup)
+
+* RANSAC
+	- 用于加强匹配
+		+ 需要用一些约束来进行test.
+		+ epipolar geometry时, 假设是fundamental matrix
+		+ projectivities时把第一幅图中的点映射到第二幅图中.
+	- 算法步骤:
+		+ 随机选一组点, 数目为该test所需最小点(epipolar 是8, projectivity是4)
+		+ 检查其它matches是否符合这组假设, 有多符合(数值)
+		+ 用所有支持当前假设的matches去refine它, 放弃剩下的.
+		+ 最后RANSAC会选择support最多的那组假设.
+	- $1-p=(1-w^{n})^{k}$, 该式子是没有有效假设被选到的概率, 当然是越小越好. n是模型所需最小的点数, k是迭代次数, t是确定是否符合模型的阈值, d是所需的'inliers'数量, w是'inlier'的比例, t和d是之前决定好的, k可以计算出来.
+
+* Active triangulation
+	- multi-directional
+		- Line scanning: 一个projector从上到下扫兔子, 另一边相机接收分析反射信号
+		- Structure light: 有特殊结构的pattern投影到场景中, 然后根据反射的形变判断3D形状. Kinect打的是红外光, 肉眼不可见.
+		- photom strereo
+	- uni-directional
+		+ Time of flight
+			* pulse and phase shift
+
+# 总结部分
+## 图像处理
+主要是如何使用滤波器, 及mask对图像进行平滑或者锐化的操作.
+1. 空域滤波
+	- 直接在spatial domain对图像进行模板卷积, 比如中值滤波那几个
+2. 频域增强
+	- 滤波器的频域表达已知, 把图像FFT转到频域, 滤波, 再IFFT反变换回来即可.
+
+
+
+
+
+
+
+#考前必须记住
+1. 推一遍光流
+2. 推一遍Hough
+3. 中值滤波, dilation, erosion
+4. 推导内参, 外参
+5. 推双目的坐标获取.
+	- simple setup: 包括推导, 问题, 改进.
+	- general setup: 
+	- Epipolar geometry: rigidity of scene
+	- Projectivity: rigid and planar
+	
+6. 理一理整个图像傅里叶变换的过程, 采样过程.
+
+
+
+
+
