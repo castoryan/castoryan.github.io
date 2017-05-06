@@ -1,0 +1,51 @@
+# SOFT 论文小结
+
+## 特征匹配
+使用了【9】中提出的blob和corner mask，提取特征。之后做非极大值抑制。
+剩下的角点用sum of absolute differences确认关联（在图像的梯度域）。
+*SAD对outlier敏感，对outlier的处理使用circular matching(即每个特征必须在连续两帧中都匹配上才会被接受,所以每个特征需要匹配四次(l1-r1,r2;l2-r1,r2))*
+对于第t帧，从t-1帧开始返回去跟踪，直到滑动窗口的第一帧。如果特征与之前的每一帧都match，则接受，否则它就是outlier。
+
+如果特征被接受，则它要过另一个check。
+在特征旁边25*25个像素区域做normalized cross correlation。NCC比SAD更加鲁棒。
+
+
+剩余的outliers用RANSAC来筛除。
+
+
+## 特征选择
+特征并不是越多越好，精心筛选出来的特征集更加靠谱。
+准确的pose估计需要同时用到近处和远处的特征点，并且特征点需要均匀分布在整幅图像上。（用bucketing的方法来做！！）
+把图像分割为50*50pixels的图像块。在每个图像块中采集一定数量的特征，用以下的规则筛选：
+1. 把特征分为四类：corner max, corner min, blob max, blob min
+2. 每一类特征按照强度排序（pixel value灰度值）
+3. 把每一类中最强的特征放到final list中
+4. 迭代3,直到所有特征都被放入final list
+5. 在final list中选取前n强的特征，用来做pose估计。
+
+
+## 特征跟踪
+特征的属性包括：
+1. ID
+2. age(与当前帧相隔的时间)
+3. 在图像中优化过的位置
+4. 特征强度
+5. 所属类别
+6. 初始descriptor 
+
+
+
+用initial descriptor去衡量特征appearence的变化程度。
+track时间长的特征拥有更大的置信度。当两个特征age相同时，取更strong的。当特征age不同时，取track时间更长的！
+为了减少outlier数量，使用two pass matching的方法。
+1. 在每个bucket(图像块中)，只取一个特征，来算出初始的rotation和translation。
+2. 在每个bucket中加入更多的特征，用初始的rotation和translation来作为约束，进行特征匹配。
+
+
+# 位姿计算
+旋转和平移分开来计算
+## 旋转
+用五点法【12】进行计算（常用于单目情况），配合RANSAC使用。即在特征点集合中不断地随机选择五个点计算旋转平移，最后选择Inlier最多的那组旋转平移（而不是前几组的平均值，因为那样并不会增加精度！）
+
+
+## 平移
